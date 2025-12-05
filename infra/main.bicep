@@ -156,6 +156,19 @@ module peeringToHub 'modules/networking/vnetPeering.bicep' = if (deployHub) {
   }
 }
 
+module peeringFromHub 'modules/networking/vnetPeering.bicep' = if (deployHub) {
+  name: 'peering-hub-to-app'
+  scope: resourceGroup(rgHub.name)
+  params: {
+    sourceVnetId: hubVnet!.outputs.vnetId
+    remoteVnetId: appVnet.outputs.vnetId
+    peeringName: names.outputs.peeringHubToApp
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+  }
+}
+
 // === Key Vault in app RG ===
 module keyVault 'modules/keyvault/keyVault.bicep' = {
   name: 'kv'
