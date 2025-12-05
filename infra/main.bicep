@@ -170,7 +170,7 @@ module keyVault 'modules/keyvault/keyVault.bicep' = {
 }
 
 // === App Gateway + WAF in frontend subnet ===
-module appGw 'modules/appgateway/appGwWaf.bicep' = {
+module appGw 'modules/appgateway/appGwWAF.bicep' = {
   name: 'appgw-waf'
   scope: resourceGroup(rgApp.name)
   params: {
