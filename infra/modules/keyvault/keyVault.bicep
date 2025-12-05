@@ -13,14 +13,20 @@ resource kv 'Microsoft.KeyVault/vaults@2023-02-01' = {
   tags: tags
   properties: {
     tenantId: tenant().tenantId
-    enableRbacAuthorization: true
+    enableRbacAuthorization: false
     enabledForDeployment: enabledForDeployment
     enableSoftDelete: true
     softDeleteRetentionInDays: 7
     sku: { family: 'A', name: toUpper(skuName) }
-    accessPolicies: [] // Using RBAC
-    publicNetworkAccess: 'Enabled'
+    accessPolicies: []
+    publicNetworkAccess: 'Disabled'
+    networkAcls: {
+      defaultAction: 'Deny'
+      bypass: 'AzureServices'
+    }
   }
 }
 
 output keyVaultId string = kv.id
+output keyVaultName string = kv.name
+output keyVaultUri string = kv.properties.vaultUri

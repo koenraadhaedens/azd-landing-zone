@@ -137,6 +137,8 @@ module appVnet 'modules/networking/vnet.bicep' = {
     subnets: [
       { name: 'frontend', addressPrefix: '10.10.1.0/24' }
       { name: 'backend', addressPrefix: '10.10.2.0/24' }
+      { name: 'database', addressPrefix: '10.10.3.0/24' }
+      { name: 'webapp-integration', addressPrefix: '10.10.4.0/24' }
       { name: 'privatelink', addressPrefix: '10.10.10.0/24' }
     ]
     tags: names.outputs.defaultTags
@@ -235,5 +237,217 @@ module vmssBackend 'modules/compute/vmss.placeholder.bicep' = {
     subnetName: 'backend'
     vnetId: appVnet.outputs.vnetId
     tags: names.outputs.defaultTags
+  }
+}
+
+// === 3-Tier Application Components ===
+
+// Generate random passwords for SQL Server and VM
+var sqlAdminPassword = '${uniqueString(deployment().name, location)}Aa1!'
+var vmAdminPassword = '${uniqueString(deployment().name, location, 'vm')}Aa1!'
+
+// Managed Identities
+module webAppManagedIdentity 'modules/identity/managedIdentity.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    managedIdentityName: names.outputs.webAppManagedIdentityName
+    location: location
+    tags: names.outputs.defaultTags
+  }
+}
+
+module apiVmManagedIdentity 'modules/identity/managedIdentity.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    managedIdentityName: names.outputs.apiVmManagedIdentityName
+    location: location
+    tags: names.outputs.defaultTags
+  }
+}
+
+// Private DNS Zones
+module privateDnsZoneWebApp 'modules/privatelink/privateDnsZone.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    privateDnsZoneName: names.outputs.privateDnsZoneWebApp
+    vnetId: appVnet.outputs.vnetId
+    tags: names.outputs.defaultTags
+  }
+}
+
+module privateDnsZoneSql 'modules/privatelink/privateDnsZone.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    privateDnsZoneName: names.outputs.privateDnsZoneSql
+    vnetId: appVnet.outputs.vnetId
+    tags: names.outputs.defaultTags
+  }
+}
+
+module privateDnsZoneKeyVault 'modules/privatelink/privateDnsZone.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    privateDnsZoneName: names.outputs.privateDnsZoneKeyVault
+    vnetId: appVnet.outputs.vnetId
+    tags: names.outputs.defaultTags
+  }
+}
+
+// SQL Database
+module sqlDatabase 'modules/database/sqlDatabase.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    sqlServerName: names.outputs.sqlServerName
+    sqlDatabaseName: names.outputs.sqlDatabaseName
+    location: location
+    administratorLoginPassword: sqlAdminPassword
+    managedIdentityId: apiVmManagedIdentity.outputs.managedIdentityId
+    tags: names.outputs.defaultTags
+  }
+}
+
+
+
+// Network Security Group for API VMs
+module apiNsg 'modules/networking/nsg.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    nsgName: names.outputs.networkSecurityGroupApiName
+    location: location
+    securityRules: [
+      {
+        name: 'AllowHTTPS'
+        properties: {
+          priority: 100
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: '10.10.0.0/16'
+          destinationAddressPrefix: '*'
+        }
+      }
+      {
+        name: 'AllowHTTP'
+        properties: {
+          priority: 110
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '80'
+          sourceAddressPrefix: '10.10.0.0/16'
+          destinationAddressPrefix: '*'
+        }
+      }
+      {
+        name: 'AllowSSH'
+        properties: {
+          priority: 120
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '22'
+          sourceAddressPrefix: '10.0.0.0/16'
+          destinationAddressPrefix: '*'
+        }
+      }
+    ]
+    tags: names.outputs.defaultTags
+  }
+}
+
+// API Virtual Machine
+module apiVm 'modules/vm/apiVm.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    vmName: names.outputs.apiVmName
+    location: location
+    adminPassword: vmAdminPassword
+    vnetId: appVnet.outputs.vnetId
+    subnetName: 'backend'
+    nsgId: apiNsg.outputs.nsgId
+    managedIdentityId: apiVmManagedIdentity.outputs.managedIdentityId
+    tags: names.outputs.defaultTags
+  }
+}
+
+// Web App Service
+module webApp 'modules/appservice/webApp.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    appServicePlanName: names.outputs.appServicePlanName
+    webAppName: names.outputs.webAppName
+    location: location
+    vnetId: appVnet.outputs.vnetId
+    subnetName: 'webapp-integration'
+    managedIdentityId: webAppManagedIdentity.outputs.managedIdentityId
+    keyVaultUri: keyVault.outputs.keyVaultUri
+    tags: names.outputs.defaultTags
+  }
+}
+
+// Private Endpoints
+module sqlPrivateEndpoint 'modules/privatelink/privateEndpoint.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    privateEndpointName: names.outputs.sqlPrivateEndpointName
+    location: location
+    vnetId: appVnet.outputs.vnetId
+    subnetName: 'privatelink'
+    targetResourceId: sqlDatabase.outputs.sqlServerId
+    groupId: 'sqlServer'
+    privateDnsZoneId: privateDnsZoneSql.outputs.privateDnsZoneId
+    tags: names.outputs.defaultTags
+  }
+}
+
+module webAppPrivateEndpoint 'modules/privatelink/privateEndpoint.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    privateEndpointName: names.outputs.webAppPrivateEndpointName
+    location: location
+    vnetId: appVnet.outputs.vnetId
+    subnetName: 'privatelink'
+    targetResourceId: webApp.outputs.webAppId
+    groupId: 'sites'
+    privateDnsZoneId: privateDnsZoneWebApp.outputs.privateDnsZoneId
+    tags: names.outputs.defaultTags
+  }
+}
+
+module kvPrivateEndpoint 'modules/privatelink/privateEndpoint.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    privateEndpointName: names.outputs.kvPrivateEndpointName
+    location: location
+    vnetId: appVnet.outputs.vnetId
+    subnetName: 'privatelink'
+    targetResourceId: keyVault.outputs.keyVaultId
+    groupId: 'vault'
+    privateDnsZoneId: privateDnsZoneKeyVault.outputs.privateDnsZoneId
+    tags: names.outputs.defaultTags
+  }
+}
+
+// Key Vault secrets and access policies
+module keyVaultSecrets 'modules/keyvault/secrets.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    keyVaultName: keyVault.outputs.keyVaultName
+    sqlConnectionString: sqlDatabase.outputs.connectionString
+    sqlAdminPassword: sqlAdminPassword
+    vmAdminPassword: vmAdminPassword
+  }
+}
+
+module keyVaultAccessPolicies 'modules/keyvault/accessPolicies.bicep' = {
+  scope: resourceGroup(rgApp.name)
+  params: {
+    keyVaultName: keyVault.outputs.keyVaultName
+    webAppManagedIdentityPrincipalId: webAppManagedIdentity.outputs.managedIdentityPrincipalId
+    apiVmManagedIdentityPrincipalId: apiVmManagedIdentity.outputs.managedIdentityPrincipalId
   }
 }
