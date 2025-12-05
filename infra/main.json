@@ -1,0 +1,1427 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "3335281844719024732"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region; use AZURE_LOCATION from azd."
+      }
+    },
+    "environment": {
+      "type": "string",
+      "defaultValue": "demo",
+      "metadata": {
+        "description": "Environment moniker, fixed to demo per requirement."
+      }
+    },
+    "workload": {
+      "type": "string",
+      "defaultValue": "helloworld",
+      "metadata": {
+        "description": "Workload application name."
+      }
+    },
+    "uniquenessSeed": {
+      "type": "string",
+      "defaultValue": "",
+      "maxLength": 8,
+      "metadata": {
+        "description": "Optional suffix or unique seed (e.g., short GUID) to ensure global uniqueness where needed."
+      }
+    },
+    "deployHub": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable hub resources (VNet, peering, optional firewall/bastion)."
+      }
+    }
+  },
+  "variables": {
+    "locLower": "[toLower(parameters('location'))]",
+    "regionMap": {
+      "westeurope": "weu",
+      "eastus": "eus",
+      "eastus2": "eu2"
+    },
+    "regionShort": "[if(contains(variables('regionMap'), variables('locLower')), variables('regionMap')[variables('locLower')], 'unk')]",
+    "rgPlatformName": "[format('rg-platform-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]",
+    "rgHubName": "[format('rg-hub-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]",
+    "rgAppName": "[format('rg-app-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('rgPlatformName')]",
+      "location": "[parameters('location')]"
+    },
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('rgHubName')]",
+      "location": "[parameters('location')]"
+    },
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('rgAppName')]",
+      "location": "[parameters('location')]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "name-helper",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "workload": {
+            "value": "[parameters('workload')]"
+          },
+          "uniquenessSeed": {
+            "value": "[parameters('uniquenessSeed')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "13699631775894197442"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "environment": {
+              "type": "string"
+            },
+            "workload": {
+              "type": "string"
+            },
+            "uniquenessSeed": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "copy": [
+              {
+                "name": "tokens",
+                "count": "[length(split(replace(variables('locLower'), '-', ' '), ' '))]",
+                "input": "[if(greater(length(split(replace(variables('locLower'), '-', ' '), ' ')[copyIndex('tokens')]), 0), substring(split(replace(variables('locLower'), '-', ' '), ' ')[copyIndex('tokens')], 0, min(3, length(split(replace(variables('locLower'), '-', ' '), ' ')[copyIndex('tokens')]))), '')]"
+              }
+            ],
+            "locLower": "[toLower(parameters('location'))]",
+            "regionMap": {
+              "westeurope": "weu",
+              "northeurope": "neu",
+              "swedencentral": "sec",
+              "swedensouth": "ses",
+              "uksouth": "uks",
+              "ukwest": "ukw",
+              "francecentral": "frc",
+              "francesouth": "frs",
+              "germanywestcentral": "gwc",
+              "germanynorth": "gen",
+              "norwayeast": "noe",
+              "norwaywest": "now",
+              "switzerlandnorth": "swn",
+              "switzerlandwest": "sww",
+              "polandcentral": "plc",
+              "italynorth": "itn",
+              "spaincentral": "spc",
+              "eastus": "eus",
+              "eastus2": "eu2",
+              "westus": "wus",
+              "westus2": "wu2",
+              "westus3": "wu3",
+              "centralus": "cus",
+              "southcentralus": "scu",
+              "northcentralus": "ncu",
+              "canadacentral": "cac",
+              "canadaeast": "cae",
+              "brazilsouth": "brs",
+              "brazilsoutheast": "brse",
+              "southeastasia": "sea",
+              "eastasia": "eas",
+              "japaneast": "jpe",
+              "japanwest": "jpw",
+              "australiaeast": "aue",
+              "australiasoutheast": "ause",
+              "australiacentral": "auc",
+              "australiacentral2": "auc2",
+              "koreacentral": "krc",
+              "koreasouth": "krs",
+              "southindia": "sin",
+              "centralindia": "cin",
+              "westindia": "win",
+              "uaenorth": "uan",
+              "uaecentral": "uac",
+              "qatarcentral": "qac",
+              "southafricanorth": "san",
+              "southafricawest": "saw",
+              "global": "glb"
+            },
+            "filteredTokens": "[filter(variables('tokens'), lambda('t', greater(length(lambdaVariables('t')), 0)))]",
+            "regionShort": "[if(contains(variables('regionMap'), variables('locLower')), variables('regionMap')[variables('locLower')], join(variables('filteredTokens'), ''))]",
+            "defaultTags": {
+              "environment": "[parameters('environment')]",
+              "workload": "[parameters('workload')]",
+              "location": "[parameters('location')]"
+            }
+          },
+          "resources": [],
+          "outputs": {
+            "defaultTags": {
+              "type": "object",
+              "value": "[variables('defaultTags')]"
+            },
+            "rgPlatformName": {
+              "type": "string",
+              "value": "[format('rg-platform-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            },
+            "rgHubName": {
+              "type": "string",
+              "value": "[format('rg-hub-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            },
+            "rgAppName": {
+              "type": "string",
+              "value": "[format('rg-app-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            },
+            "laName": {
+              "type": "string",
+              "value": "[format('la-{0}-{1}-{2}{3}', parameters('workload'), parameters('environment'), variables('regionShort'), parameters('uniquenessSeed'))]"
+            },
+            "hubVnetName": {
+              "type": "string",
+              "value": "[format('vnet-hub-{0}-{1}', parameters('environment'), variables('regionShort'))]"
+            },
+            "firewallName": {
+              "type": "string",
+              "value": "[format('afw-hub-{0}-{1}', parameters('environment'), variables('regionShort'))]"
+            },
+            "bastionName": {
+              "type": "string",
+              "value": "[format('bas-hub-{0}-{1}', parameters('environment'), variables('regionShort'))]"
+            },
+            "appVnetName": {
+              "type": "string",
+              "value": "[format('vnet-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            },
+            "kvName": {
+              "type": "string",
+              "value": "[format('kv-{0}-{1}-{2}{3}', parameters('workload'), parameters('environment'), variables('regionShort'), parameters('uniquenessSeed'))]"
+            },
+            "appGwName": {
+              "type": "string",
+              "value": "[format('agw-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            },
+            "wafPolicyName": {
+              "type": "string",
+              "value": "[format('waf-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            },
+            "ilbName": {
+              "type": "string",
+              "value": "[format('ilb-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            },
+            "vmssFrontendName": {
+              "type": "string",
+              "value": "[format('vmss-fe-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            },
+            "vmssBackendName": {
+              "type": "string",
+              "value": "[format('vmss-be-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            },
+            "peeringAppToHub": {
+              "type": "string",
+              "value": "[format('peer-{0}-hub-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "la-workspace",
+      "resourceGroup": "[variables('rgPlatformName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.laName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "retentionInDays": {
+            "value": 30
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "9811039188762402091"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "retentionInDays": {
+              "type": "int",
+              "defaultValue": 30
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2022-10-01",
+              "name": "[parameters('name')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "retentionInDays": "[parameters('retentionInDays')]",
+                "features": {
+                  "legacy": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "workspaceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('name'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgPlatformName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "diag-settings",
+      "resourceGroup": "[variables('rgPlatformName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "workspaceResourceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgPlatformName')), 'Microsoft.Resources/deployments', 'la-workspace'), '2025-04-01').outputs.workspaceId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "3831639312630180507"
+            }
+          },
+          "parameters": {
+            "workspaceResourceId": {
+              "type": "string"
+            }
+          },
+          "resources": [],
+          "outputs": {
+            "diagnosticSettingsConfig": {
+              "type": "object",
+              "value": {
+                "workspaceId": "[parameters('workspaceResourceId')]",
+                "logs": [
+                  {
+                    "category": "AuditEvent",
+                    "enabled": true
+                  },
+                  {
+                    "category": "VMProtectionAlerts",
+                    "enabled": true
+                  }
+                ],
+                "metrics": [
+                  {
+                    "category": "AllMetrics",
+                    "enabled": true
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgPlatformName')), 'Microsoft.Resources/deployments', 'la-workspace')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgPlatformName'))]"
+      ]
+    },
+    {
+      "condition": "[parameters('deployHub')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "hub-vnet",
+      "resourceGroup": "[variables('rgHubName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "vnetName": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.hubVnetName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "addressPrefixes": {
+            "value": [
+              "10.0.0.0/16"
+            ]
+          },
+          "subnets": {
+            "value": [
+              {
+                "name": "AzureFirewallSubnet",
+                "addressPrefix": "10.0.1.0/24"
+              },
+              {
+                "name": "AzureBastionSubnet",
+                "addressPrefix": "10.0.2.0/24"
+              },
+              {
+                "name": "mgmt",
+                "addressPrefix": "10.0.10.0/24"
+              }
+            ]
+          },
+          "tags": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.defaultTags.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "5557302412316894567"
+            }
+          },
+          "parameters": {
+            "vnetName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "addressPrefixes": {
+              "type": "array"
+            },
+            "subnets": {
+              "type": "array"
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {}
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2023-05-01",
+              "name": "[parameters('vnetName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "copy": [
+                  {
+                    "name": "subnets",
+                    "count": "[length(parameters('subnets'))]",
+                    "input": {
+                      "name": "[parameters('subnets')[copyIndex('subnets')].name]",
+                      "properties": {
+                        "addressPrefix": "[parameters('subnets')[copyIndex('subnets')].addressPrefix]"
+                      }
+                    }
+                  }
+                ],
+                "addressSpace": {
+                  "addressPrefixes": "[parameters('addressPrefixes')]"
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "vnetId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+            },
+            "vnetName": {
+              "type": "string",
+              "value": "[parameters('vnetName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgHubName'))]"
+      ]
+    },
+    {
+      "condition": "[parameters('deployHub')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "hub-firewall",
+      "resourceGroup": "[variables('rgHubName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.firewallName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "4593878020500385090"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "firewallName": "[parameters('name')]",
+            "firewallLocation": "[parameters('location')]"
+          },
+          "resources": [],
+          "outputs": {
+            "firewallId": {
+              "type": "string",
+              "value": "[format('placeholder-firewall-id-{0}-{1}', variables('firewallName'), variables('firewallLocation'))]"
+            },
+            "firewallPrivateIp": {
+              "type": "string",
+              "value": "10.0.1.4"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgHubName'))]"
+      ]
+    },
+    {
+      "condition": "[parameters('deployHub')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "hub-bastion",
+      "resourceGroup": "[variables('rgHubName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.bastionName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "214708100976791826"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "bastionName": "[parameters('name')]",
+            "bastionLocation": "[parameters('location')]"
+          },
+          "resources": [],
+          "outputs": {
+            "bastionId": {
+              "type": "string",
+              "value": "[format('placeholder-bastion-id-{0}-{1}', variables('bastionName'), variables('bastionLocation'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgHubName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "app-vnet",
+      "resourceGroup": "[variables('rgAppName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "vnetName": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.appVnetName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "addressPrefixes": {
+            "value": [
+              "10.10.0.0/16"
+            ]
+          },
+          "subnets": {
+            "value": [
+              {
+                "name": "frontend",
+                "addressPrefix": "10.10.1.0/24"
+              },
+              {
+                "name": "backend",
+                "addressPrefix": "10.10.2.0/24"
+              },
+              {
+                "name": "privatelink",
+                "addressPrefix": "10.10.10.0/24"
+              }
+            ]
+          },
+          "tags": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.defaultTags.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "5557302412316894567"
+            }
+          },
+          "parameters": {
+            "vnetName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "addressPrefixes": {
+              "type": "array"
+            },
+            "subnets": {
+              "type": "array"
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {}
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2023-05-01",
+              "name": "[parameters('vnetName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "copy": [
+                  {
+                    "name": "subnets",
+                    "count": "[length(parameters('subnets'))]",
+                    "input": {
+                      "name": "[parameters('subnets')[copyIndex('subnets')].name]",
+                      "properties": {
+                        "addressPrefix": "[parameters('subnets')[copyIndex('subnets')].addressPrefix]"
+                      }
+                    }
+                  }
+                ],
+                "addressSpace": {
+                  "addressPrefixes": "[parameters('addressPrefixes')]"
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "vnetId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+            },
+            "vnetName": {
+              "type": "string",
+              "value": "[parameters('vnetName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgAppName'))]"
+      ]
+    },
+    {
+      "condition": "[parameters('deployHub')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "peering-app-to-hub",
+      "resourceGroup": "[variables('rgAppName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "sourceVnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet'), '2025-04-01').outputs.vnetId.value]"
+          },
+          "remoteVnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgHubName')), 'Microsoft.Resources/deployments', 'hub-vnet'), '2025-04-01').outputs.vnetId.value]"
+          },
+          "peeringName": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.peeringAppToHub.value]"
+          },
+          "allowForwardedTraffic": {
+            "value": true
+          },
+          "allowGatewayTransit": {
+            "value": false
+          },
+          "useRemoteGateways": {
+            "value": false
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "1539335091470977652"
+            }
+          },
+          "parameters": {
+            "sourceVnetId": {
+              "type": "string"
+            },
+            "remoteVnetId": {
+              "type": "string"
+            },
+            "peeringName": {
+              "type": "string"
+            },
+            "allowForwardedTraffic": {
+              "type": "bool",
+              "defaultValue": true
+            },
+            "allowGatewayTransit": {
+              "type": "bool",
+              "defaultValue": false
+            },
+            "useRemoteGateways": {
+              "type": "bool",
+              "defaultValue": false
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+              "apiVersion": "2023-05-01",
+              "name": "[format('{0}/{1}', split(parameters('sourceVnetId'), '/')[8], parameters('peeringName'))]",
+              "properties": {
+                "remoteVirtualNetwork": {
+                  "id": "[parameters('remoteVnetId')]"
+                },
+                "allowForwardedTraffic": "[parameters('allowForwardedTraffic')]",
+                "allowVirtualNetworkAccess": true,
+                "allowGatewayTransit": "[parameters('allowGatewayTransit')]",
+                "useRemoteGateways": "[parameters('useRemoteGateways')]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgHubName')), 'Microsoft.Resources/deployments', 'hub-vnet')]",
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgAppName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "kv",
+      "resourceGroup": "[variables('rgAppName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.kvName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "enabledForDeployment": {
+            "value": true
+          },
+          "skuName": {
+            "value": "standard"
+          },
+          "tags": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.defaultTags.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "10283970527052503320"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "enabledForDeployment": {
+              "type": "bool",
+              "defaultValue": true
+            },
+            "skuName": {
+              "type": "string",
+              "defaultValue": "standard"
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {}
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2023-02-01",
+              "name": "[parameters('name')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "tenantId": "[tenant().tenantId]",
+                "enableRbacAuthorization": true,
+                "enabledForDeployment": "[parameters('enabledForDeployment')]",
+                "enableSoftDelete": true,
+                "softDeleteRetentionInDays": 7,
+                "sku": {
+                  "family": "A",
+                  "name": "[toUpper(parameters('skuName'))]"
+                },
+                "accessPolicies": [],
+                "publicNetworkAccess": "Enabled"
+              }
+            }
+          ],
+          "outputs": {
+            "keyVaultId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('name'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgAppName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "appgw-waf",
+      "resourceGroup": "[variables('rgAppName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.appGwName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet'), '2025-04-01').outputs.vnetId.value]"
+          },
+          "subnetName": {
+            "value": "frontend"
+          },
+          "wafMode": {
+            "value": "Prevention"
+          },
+          "wafPolicyName": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.wafPolicyName.value]"
+          },
+          "tags": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.defaultTags.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "18143650803392226331"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "vnetId": {
+              "type": "string"
+            },
+            "subnetName": {
+              "type": "string"
+            },
+            "wafMode": {
+              "type": "string",
+              "defaultValue": "Prevention"
+            },
+            "wafPolicyName": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {}
+            }
+          },
+          "variables": {
+            "subnetId": "[format('{0}/subnets/{1}', parameters('vnetId'), parameters('subnetName'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2023-05-01",
+              "name": "[format('{0}-pip', parameters('name'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+              },
+              "properties": {
+                "publicIPAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4"
+              }
+            },
+            {
+              "type": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+              "apiVersion": "2022-09-01",
+              "name": "[parameters('wafPolicyName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "policySettings": {
+                  "state": "Enabled",
+                  "mode": "[parameters('wafMode')]",
+                  "requestBodyCheck": true
+                },
+                "customRules": [],
+                "managedRules": {
+                  "managedRuleSets": [
+                    {
+                      "ruleSetType": "OWASP",
+                      "ruleSetVersion": "3.2"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Network/applicationGateways",
+              "apiVersion": "2023-05-01",
+              "name": "[parameters('name')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "sku": {
+                  "name": "WAF_v2",
+                  "tier": "WAF_v2",
+                  "capacity": 2
+                },
+                "gatewayIPConfigurations": [
+                  {
+                    "name": "gwipconfig",
+                    "properties": {
+                      "subnet": {
+                        "id": "[variables('subnetId')]"
+                      }
+                    }
+                  }
+                ],
+                "frontendIPConfigurations": [
+                  {
+                    "name": "feip",
+                    "properties": {
+                      "publicIPAddress": {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', format('{0}-pip', parameters('name')))]"
+                      }
+                    }
+                  }
+                ],
+                "frontendPorts": [
+                  {
+                    "name": "port-80",
+                    "properties": {
+                      "port": 80
+                    }
+                  },
+                  {
+                    "name": "port-443",
+                    "properties": {
+                      "port": 443
+                    }
+                  }
+                ],
+                "sslCertificates": [],
+                "backendAddressPools": [
+                  {
+                    "name": "defaultpool",
+                    "properties": {
+                      "backendAddresses": []
+                    }
+                  }
+                ],
+                "backendHttpSettingsCollection": [
+                  {
+                    "name": "defaultsettings",
+                    "properties": {
+                      "port": 80,
+                      "protocol": "Http",
+                      "cookieBasedAffinity": "Disabled",
+                      "requestTimeout": 30
+                    }
+                  }
+                ],
+                "httpListeners": [
+                  {
+                    "name": "listener-80",
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', parameters('name'), 'feip')]"
+                      },
+                      "frontendPort": {
+                        "id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts', parameters('name'), 'port-80')]"
+                      },
+                      "protocol": "Http"
+                    }
+                  }
+                ],
+                "requestRoutingRules": [
+                  {
+                    "name": "rule-80",
+                    "properties": {
+                      "ruleType": "Basic",
+                      "priority": 100,
+                      "httpListener": {
+                        "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', parameters('name'), 'listener-80')]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', parameters('name'), 'defaultpool')]"
+                      },
+                      "backendHttpSettings": {
+                        "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', parameters('name'), 'defaultsettings')]"
+                      }
+                    }
+                  }
+                ],
+                "webApplicationFirewallConfiguration": {
+                  "enabled": true,
+                  "firewallMode": "[parameters('wafMode')]",
+                  "ruleSetType": "OWASP",
+                  "ruleSetVersion": "3.2"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', format('{0}-pip', parameters('name')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "appGatewayId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/applicationGateways', parameters('name'))]"
+            },
+            "publicIpAddress": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', format('{0}-pip', parameters('name'))), '2023-05-01').ipAddress]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet')]",
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgAppName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "internal-lb",
+      "resourceGroup": "[variables('rgAppName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.ilbName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet'), '2025-04-01').outputs.vnetId.value]"
+          },
+          "subnetName": {
+            "value": "backend"
+          },
+          "tags": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.defaultTags.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "14790054653932444910"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "vnetId": {
+              "type": "string"
+            },
+            "subnetName": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {}
+            }
+          },
+          "variables": {
+            "ilbName": "[parameters('name')]",
+            "ilbLocation": "[parameters('location')]",
+            "ilbVnetId": "[parameters('vnetId')]",
+            "ilbSubnet": "[parameters('subnetName')]",
+            "ilbTags": "[parameters('tags')]"
+          },
+          "resources": [],
+          "outputs": {
+            "ilbId": {
+              "type": "string",
+              "value": "[format('placeholder-ilb-{0}-{1}-{2}-{3}-{4}', variables('ilbName'), variables('ilbLocation'), variables('ilbSubnet'), variables('ilbVnetId'), length(variables('ilbTags')))]"
+            },
+            "ilbPrivateIp": {
+              "type": "string",
+              "value": "10.10.2.4"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet')]",
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgAppName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "vmss-frontend",
+      "resourceGroup": "[variables('rgAppName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.vmssFrontendName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "sku": {
+            "value": "Standard_D2s_v5"
+          },
+          "instanceCount": {
+            "value": 2
+          },
+          "subnetName": {
+            "value": "frontend"
+          },
+          "vnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet'), '2025-04-01').outputs.vnetId.value]"
+          },
+          "tags": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.defaultTags.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "15539311394454641827"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string"
+            },
+            "instanceCount": {
+              "type": "int"
+            },
+            "subnetName": {
+              "type": "string"
+            },
+            "vnetId": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {}
+            }
+          },
+          "variables": {
+            "vmssName": "[parameters('name')]",
+            "vmssLocation": "[parameters('location')]",
+            "vmssSku": "[parameters('sku')]",
+            "vmssInstances": "[parameters('instanceCount')]",
+            "vmssSubnet": "[parameters('subnetName')]",
+            "vmssVnet": "[parameters('vnetId')]",
+            "vmssTags": "[parameters('tags')]"
+          },
+          "resources": [],
+          "outputs": {
+            "vmssId": {
+              "type": "string",
+              "value": "[format('placeholder-vmss-{0}-{1}-{2}-{3}-{4}-{5}-{6}', variables('vmssName'), variables('vmssLocation'), variables('vmssSku'), variables('vmssInstances'), variables('vmssSubnet'), variables('vmssVnet'), length(variables('vmssTags')))]"
+            },
+            "vmssName": {
+              "type": "string",
+              "value": "[parameters('name')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet')]",
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgAppName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "vmss-backend",
+      "resourceGroup": "[variables('rgAppName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.vmssBackendName.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "sku": {
+            "value": "Standard_D2s_v5"
+          },
+          "instanceCount": {
+            "value": 2
+          },
+          "subnetName": {
+            "value": "backend"
+          },
+          "vnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet'), '2025-04-01').outputs.vnetId.value]"
+          },
+          "tags": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper'), '2025-04-01').outputs.defaultTags.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "15539311394454641827"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string"
+            },
+            "instanceCount": {
+              "type": "int"
+            },
+            "subnetName": {
+              "type": "string"
+            },
+            "vnetId": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {}
+            }
+          },
+          "variables": {
+            "vmssName": "[parameters('name')]",
+            "vmssLocation": "[parameters('location')]",
+            "vmssSku": "[parameters('sku')]",
+            "vmssInstances": "[parameters('instanceCount')]",
+            "vmssSubnet": "[parameters('subnetName')]",
+            "vmssVnet": "[parameters('vnetId')]",
+            "vmssTags": "[parameters('tags')]"
+          },
+          "resources": [],
+          "outputs": {
+            "vmssId": {
+              "type": "string",
+              "value": "[format('placeholder-vmss-{0}-{1}-{2}-{3}-{4}-{5}-{6}', variables('vmssName'), variables('vmssLocation'), variables('vmssSku'), variables('vmssInstances'), variables('vmssSubnet'), variables('vmssVnet'), length(variables('vmssTags')))]"
+            },
+            "vmssName": {
+              "type": "string",
+              "value": "[parameters('name')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgAppName')), 'Microsoft.Resources/deployments', 'app-vnet')]",
+        "[subscriptionResourceId('Microsoft.Resources/deployments', 'name-helper')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('rgAppName'))]"
+      ]
+    }
+  ]
+}

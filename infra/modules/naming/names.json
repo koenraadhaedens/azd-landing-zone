@@ -1,0 +1,159 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.38.33.27573",
+      "templateHash": "882621798801067193"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string"
+    },
+    "workload": {
+      "type": "string"
+    },
+    "uniquenessSeed": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "copy": [
+      {
+        "name": "tokens",
+        "count": "[length(split(replace(variables('locLower'), '-', ' '), ' '))]",
+        "input": "[if(greater(length(split(replace(variables('locLower'), '-', ' '), ' ')[copyIndex('tokens')]), 0), substring(split(replace(variables('locLower'), '-', ' '), ' ')[copyIndex('tokens')], 0, min(3, length(split(replace(variables('locLower'), '-', ' '), ' ')[copyIndex('tokens')]))), '')]"
+      }
+    ],
+    "locLower": "[toLower(parameters('location'))]",
+    "regionMap": {
+      "westeurope": "weu",
+      "northeurope": "neu",
+      "swedencentral": "sec",
+      "swedensouth": "ses",
+      "uksouth": "uks",
+      "ukwest": "ukw",
+      "francecentral": "frc",
+      "francesouth": "frs",
+      "germanywestcentral": "gwc",
+      "germanynorth": "gen",
+      "norwayeast": "noe",
+      "norwaywest": "now",
+      "switzerlandnorth": "swn",
+      "switzerlandwest": "sww",
+      "polandcentral": "plc",
+      "italynorth": "itn",
+      "spaincentral": "spc",
+      "eastus": "eus",
+      "eastus2": "eu2",
+      "westus": "wus",
+      "westus2": "wu2",
+      "westus3": "wu3",
+      "centralus": "cus",
+      "southcentralus": "scu",
+      "northcentralus": "ncu",
+      "canadacentral": "cac",
+      "canadaeast": "cae",
+      "brazilsouth": "brs",
+      "brazilsoutheast": "brse",
+      "southeastasia": "sea",
+      "eastasia": "eas",
+      "japaneast": "jpe",
+      "japanwest": "jpw",
+      "australiaeast": "aue",
+      "australiasoutheast": "ause",
+      "australiacentral": "auc",
+      "australiacentral2": "auc2",
+      "koreacentral": "krc",
+      "koreasouth": "krs",
+      "southindia": "sin",
+      "centralindia": "cin",
+      "westindia": "win",
+      "uaenorth": "uan",
+      "uaecentral": "uac",
+      "qatarcentral": "qac",
+      "southafricanorth": "san",
+      "southafricawest": "saw",
+      "global": "glb"
+    },
+    "filteredTokens": "[filter(variables('tokens'), lambda('t', greater(length(lambdaVariables('t')), 0)))]",
+    "regionShort": "[if(contains(variables('regionMap'), variables('locLower')), variables('regionMap')[variables('locLower')], join(variables('filteredTokens'), ''))]",
+    "defaultTags": {
+      "environment": "[parameters('environment')]",
+      "workload": "[parameters('workload')]",
+      "location": "[parameters('location')]"
+    }
+  },
+  "resources": [],
+  "outputs": {
+    "defaultTags": {
+      "type": "object",
+      "value": "[variables('defaultTags')]"
+    },
+    "rgPlatformName": {
+      "type": "string",
+      "value": "[format('rg-platform-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    },
+    "rgHubName": {
+      "type": "string",
+      "value": "[format('rg-hub-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    },
+    "rgAppName": {
+      "type": "string",
+      "value": "[format('rg-app-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    },
+    "laName": {
+      "type": "string",
+      "value": "[format('la-{0}-{1}-{2}{3}', parameters('workload'), parameters('environment'), variables('regionShort'), parameters('uniquenessSeed'))]"
+    },
+    "hubVnetName": {
+      "type": "string",
+      "value": "[format('vnet-hub-{0}-{1}', parameters('environment'), variables('regionShort'))]"
+    },
+    "firewallName": {
+      "type": "string",
+      "value": "[format('afw-hub-{0}-{1}', parameters('environment'), variables('regionShort'))]"
+    },
+    "bastionName": {
+      "type": "string",
+      "value": "[format('bas-hub-{0}-{1}', parameters('environment'), variables('regionShort'))]"
+    },
+    "appVnetName": {
+      "type": "string",
+      "value": "[format('vnet-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    },
+    "kvName": {
+      "type": "string",
+      "value": "[format('kv-{0}-{1}-{2}{3}', parameters('workload'), parameters('environment'), variables('regionShort'), parameters('uniquenessSeed'))]"
+    },
+    "appGwName": {
+      "type": "string",
+      "value": "[format('agw-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    },
+    "wafPolicyName": {
+      "type": "string",
+      "value": "[format('waf-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    },
+    "ilbName": {
+      "type": "string",
+      "value": "[format('ilb-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    },
+    "vmssFrontendName": {
+      "type": "string",
+      "value": "[format('vmss-fe-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    },
+    "vmssBackendName": {
+      "type": "string",
+      "value": "[format('vmss-be-{0}-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    },
+    "peeringAppToHub": {
+      "type": "string",
+      "value": "[format('peer-{0}-hub-{1}-{2}', parameters('workload'), parameters('environment'), variables('regionShort'))]"
+    }
+  }
+}
