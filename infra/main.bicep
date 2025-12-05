@@ -138,7 +138,16 @@ module appVnet 'modules/networking/vnet.bicep' = {
       { name: 'frontend', addressPrefix: '10.10.1.0/24' }
       { name: 'backend', addressPrefix: '10.10.2.0/24' }
       { name: 'database', addressPrefix: '10.10.3.0/24' }
-      { name: 'webapp-integration', addressPrefix: '10.10.4.0/24' }
+      { 
+        name: 'webapp-integration'
+        addressPrefix: '10.10.4.0/24'
+        delegations: [{
+          name: 'Microsoft.Web.serverFarms'
+          properties: {
+            serviceName: 'Microsoft.Web/serverFarms'
+          }
+        }]
+      }
       { name: 'privatelink', addressPrefix: '10.10.10.0/24' }
     ]
     tags: names.outputs.defaultTags

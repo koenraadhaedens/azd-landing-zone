@@ -58,15 +58,6 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
   tags: tags
 }
 
-// Enable Azure AD authentication only
-resource sqlServerAzureADOnlyAuth 'Microsoft.Sql/servers/azureADOnlyAuthentications@2023-08-01-preview' = {
-  parent: sqlServer
-  name: 'Default'
-  properties: {
-    azureADOnlyAuthentication: false // Allow both SQL and Azure AD auth for initial setup
-  }
-}
-
 // Advanced Threat Protection
 resource sqlServerSecurityAlertPolicy 'Microsoft.Sql/servers/securityAlertPolicies@2023-08-01-preview' = {
   parent: sqlServer
@@ -78,23 +69,6 @@ resource sqlServerSecurityAlertPolicy 'Microsoft.Sql/servers/securityAlertPolici
     emailAccountAdmins: true
     retentionDays: 30
   }
-}
-
-// Vulnerability Assessment
-resource sqlServerVulnerabilityAssessment 'Microsoft.Sql/servers/vulnerabilityAssessments@2023-08-01-preview' = {
-  parent: sqlServer
-  name: 'default'
-  properties: {
-    storageContainerPath: ''
-    recurringScans: {
-      isEnabled: true
-      emailSubscriptionAdmins: true
-      emails: []
-    }
-  }
-  dependsOn: [
-    sqlServerSecurityAlertPolicy
-  ]
 }
 
 // Transparent Data Encryption (enabled by default on new databases)
