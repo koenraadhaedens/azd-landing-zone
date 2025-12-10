@@ -9,10 +9,10 @@ param location string = resourceGroup().location
 
 @description('SKU for the App Service Plan')
 param sku object = {
-  name: 'P1v3'
-  tier: 'PremiumV3'
-  size: 'P1v3'
-  family: 'Pv3'
+  name: 'B1'
+  tier: 'Basic'
+  size: 'B1'
+  family: 'B'
   capacity: 1
 }
 
