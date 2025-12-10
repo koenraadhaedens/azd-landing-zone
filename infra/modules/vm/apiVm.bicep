@@ -12,7 +12,7 @@ param adminUsername string = 'azureuser'
 param adminPassword string
 
 @description('Virtual Machine size')
-param vmSize string = 'Standard_D2s_v5'
+param vmSize string = 'Standard_D2s_v6'
 
 @description('Virtual Network ID')
 param vnetId string
