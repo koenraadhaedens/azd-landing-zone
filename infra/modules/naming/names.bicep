@@ -110,7 +110,7 @@ output bastionName string    = 'bas-hub-${environment}-${regionShort}'
 
 // Spoke/application
 output appVnetName string    = 'vnet-${workload}-${environment}-${regionShort}'
-output kvName string         = 'kv-${workload}-${environment}-${regionShort}${uniquenessSeed}'
+output kvName string         = length(uniquenessSeed) > 0 ? 'kv-${take(workload, 6)}-${take(environment, 3)}-${regionShort}${take(uniquenessSeed, 5)}' : 'kv-${take(workload, 8)}-${take(environment, 4)}-${regionShort}'
 output appGwName string      = 'agw-${workload}-${environment}-${regionShort}'
 output wafPolicyName string  = 'waf-${workload}-${environment}-${regionShort}'
 output ilbName string        = 'ilb-${workload}-${environment}-${regionShort}'
